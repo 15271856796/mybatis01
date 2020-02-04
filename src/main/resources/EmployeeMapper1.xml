@@ -8,10 +8,10 @@
 <!--#{id}和占位符的功能相似 #{id} 相当于占位符 ? 所以#{} 里面是什么东西无所谓 实现的时候都是将实参依次赋值-->
 
 <mapper namespace="com.hdl.bean.EmployeeMapper1">
-<select id="selectEmployee" resultType="com.hdl.bean.Employee">   select * from tal_employee where id = #{id}
+<select id="selectEmployee" resultType="Employee">   select * from tal_employee where id = #{id1}
 </select>
 
 <select id="selectEmployee2" resultType="com.hdl.bean.Employee">
-select id,last_name lastname,gender,email from tal_employee where id = #{id}
+select id,last_name lastname,gender,email from tal_employee where id = #{id2}
 </select>
 </mapper>

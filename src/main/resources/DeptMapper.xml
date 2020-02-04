@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-        <!DOCTYPE mapper
-                PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-                "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <!--namespace是命名空间,万一后面还有sql的id是selectEmployee,则可以通过命名空间进行区分,所以是可以自己任意的取 所以namespace和select标签中的id都是为了区分sql而起的标识-->
 <!--结果的封装用的是别名映射,当数据库表字段与bean属名不一致的时候,可以使用别名,不使用别名的话,不会报错,只会是没有映射到的字段为null,其余字段有值-->
 <!--#{id}和占位符的功能相似 #{id} 相当于占位符 ? 所以#{} 里面是什么东西无所谓 实现的时候都是将实参依次赋值-->
 
-<mapper namespace="com.hdl.bean.EmployeeMapper1">
-<select id="selectEmployee" resultType="Employee">   select * from tal_employee where id = #{id1}
+<mapper namespace="com.hdl.dao.DeptMapper">
+    <select id="getDeptbyId" resultType="com.hdl.bean.Dept">   select * from tal_employee where id = #{id1}
 </select>
 
-<select id="selectEmployee2" resultType="com.hdl.bean.Employee">
-select id,last_name lastname,gender,email from tal_employee where id = #{id2}
-</select>
+
+
 </mapper>

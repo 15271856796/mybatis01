@@ -3,16 +3,84 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
+
+
 <!--namespace是命名空间,需要和绑定的接口的全限定类名保持一致,不能再随意的取了.select标签中的id需与接口中方法名保持一致-->
 <!--结果的封装用的是别名映射,当数据库表字段与bean属名不一致的时候,可以使用别名,不使用别名的话,不会报错,只会是没有映射到的字段为null,其余字段有值-->
-<!--#{id}和占位符的功能相似 #{id} 相当于占位符 ? 所以#{} 里面是什么东西无所谓 实现的时候都是将实参依次赋值-->
+
+<!--###########################################注意sql配置语句中如何接收参数########################################################
+#{id}和占位符的功能相似 #{id} 相当于占位符 ? 通过接口的实参进行传值,那么用#{}如何接参呢
+①传一个参数:如果接口中的参数是一个基本类型参数,比如public Employee getempbyId(Integer id); 那么可以直接用#{任何}来接参,比如#{id} #{ids}都行
+             如果接口中的一个参数是类类型的话 那么#{}里可以直接是类对象的属性名,参考insert语句
+             如果传的是list比如public Employee getemp(List<Integer> list); 那么取出第一个id的值为===>#{list[0]}
+
+②传两个参数:如果是多个参数public Employee getempbyId(Integer id,String lastname);那么就不能直接用#{id}#{lastname}来接参
+             处理方法一:直接用#{param1}#{param2}或者#{0}#{1} 可以看到这种方式很不方便,容易传错值
+             处理方法二: 在接口中的方法 使用public Employee getempbyIdandLastname(@Param("id") Integer id, @Param("lastname") String lastname);也就是为参数指定名字
+                         那么就可以直接用#{id} #{lastname} @Param()里面是你自己定义的名字 #{}里就写的是@Param()里的名字
+             处理方法三:在接口的方法中,使用map传参public Employee getempbymap(Map<String,Object> map);
+                         那么sql接参的时候就可以直接用#{key}来接参了
+总结下来当需要传多个参数的时候,又刚好是我们业务逻辑的数据模型,我们就可以直接传入pojo #{属性名}
+使用的少且不是我们的业务数据模型,那么就可以使用@Param
+使用的多且不是我们的业务数据模型,那么可以自己创建一个pojo
+
+#############################################注意特别的传参方式##################################################################
+public Employee getemp(@Param("id) Integer id,String lastname);  那么id==>#{id/param1}  lastname==>#{params2}
+public Employee getemp(Integer id,@Param("e") Employee emp);  那么id==>#{param1}  lastname==>#{params2.lastname/e.lastname}
+如果传的是list比如public Employee getemp(List<Integer> list); 那么取出第一个id的值为===>#{list[0]}
+所以如果传的是Collection类型 那么用的都是#{collection[]}
+
+#############################################注意#{}和${}接参的区别###################################################################
+#{}和${}的用法完全一样,只不过#{}是使用prepareStatement进行预编译 而${}是使用拼串的形式,会有sql注入漏洞
+大多时候我们都是用#{} 但有的时候不得不使用${},也就是原生jdbc不支持占位符的地方我们就需要使用${}
+比如说对表名进行传参, select * from ${year}_salary where ***  (比如对2017_salary进行查询)
+比如对某个字段进行排序  select * from 2017_salary order by ${order}
+-->
+
+<!--###################################################sql查询语句的返回值处理####################################################
+①返回多条记录,接口返回值类型课设置为对象集合:即要求返回值为一个List,实现: 接口中public List<Employee> getempbyname(Integer lastname);
+                       那么sql语句中resultType="com.hdl.bean.Employee",也就是返回值类型直接指定为集合元素的类型
+②返回一条记录 ,接口返回值类型可设置为map,也就是不想封装成对象,而是想要k-v形式 实现: 接口中public Map<String,Object> getempreturnmap(Interget id)
+                       那么sql语句中resultType="map"   那么结果为{id=1,email=15271856796@163.com,lastname=hdl,gender=1}
+③返回多条记录,想要封装成一个map,Map<Integer,Employee>:键是这条记录的主键,值是记录封装后的JavaBean 实现:接口中 @MapKey("id") public Map<Integer,Employee> getempmapreturnmap(String lastname) 使用这个注解告诉mybatis要用哪个字段作为key
+                       那么sql语句中resultType="com.hdl.bean.Employee",也就是返回值类型直接指定为集合元素的类型
+-->
 
 <mapper namespace="com.hdl.dao.EmployeeMapper">
-    <select id="selectEmployee" resultType="com.hdl.bean.Employee">
-   select * from tal_employee where id = #{id}
-</select>
+    <select id="getempbyId" resultType="com.hdl.bean.Employee">
+       select id,last_name lastname,gender,email from tal_employee where id = #{id}
+    </select>
 
-<select id="getempbyId" resultType="com.hdl.bean.Employee">
-   select id,last_name lastname,gender,email from tal_employee where id = #{id}
-</select>
+    <insert id="addEmployee">
+     insert into tal_employee(last_name,gender,email) values(#{lastname},#{gender},#{email})
+    </insert>
+
+    <delete id="deleteEmployee">
+      delete from tal_employee where id=#{id}
+    </delete>
+
+    <update id="updateEmployee">
+        update tal_employee set last_name=#{lastname} ,email=#{email},gender=#{gender} where id=#{id}
+    </update>
+
+
+
+
+    <delete id="deleteEmployee1">
+      delete from tal_employee where id=#{id}
+    </delete>
+
+    <delete id="deleteEmployee2">
+      delete from tal_employee where id=#{id}
+    </delete>
+
+    <!--mysql支持自增主键,mybatis可以获取自增主键值,是利用statement.getGenreateKeys()-->
+    <!--在添加记录的时候,可以获取到自动生成的主键,通过在insert标签中使用以下两个标签
+      useGeneratedKeys="true":使用自增主键获取策略
+      keyProperty="id" mybatis获取主键后,将这个值封装给JavaBean的哪个属性-->
+    <insert id="addEmployee1" useGeneratedKeys="true" keyProperty="id">
+     insert into tal_employee(last_name,gender,email) values(#{lastname},#{gender},#{email})
+    </insert>
+
+
 </mapper>

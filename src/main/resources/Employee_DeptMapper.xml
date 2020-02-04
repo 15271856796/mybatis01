@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--如果想把结果封装到一个复杂对象中(这个对象的属性不全是基本类型属性,还有类对象属性,这个时候就不能靠别名和类型自动转换来进行自动封装了
+因为你查询出来的都是基本类型字段,mybatis不可能将基本类型自动转化成类类型,所有只能我们自己手动写一个封装规则resultMap)-->
+<mapper namespace="com.hdl.dao.Employee_DeptMapper">
+    <!--resultMap构造方法一:-->
+    <!-- type:指定我们的结果要封装成哪个对象 id是自己自定义的唯一标识-->
+    <resultMap type="com.hdl.bean.Employee_Dept" id="My_Employee_Dept1">
+        <!--用标签id代表这个字段是主键-->
+        <id column="id" property="id"></id>
+        <result column="last_name" property="lastname"></result>
+        <result column="gender" property="gender"></result>
+        <result column="email" property="email"></result>
+        <result column="d_id" property="dept.id"></result>  <!--级联属性封装结果集-->
+        <result column="dept_name" property="dept.deptname"></result>    <!--级联属性封装结果集-->
+    </resultMap>
+
+
+  <!--  resultMap构造的方式二:-->
+    <resultMap type="com.hdl.bean.Employee_Dept" id="My_Employee_Dept2">
+    <id column="id" property="id"></id>
+    <result column="last_name" property="lastname"></result>
+    <result column="gender" property="gender"></result>
+    <result column="email" property="email"></result>
+        <!-- association可以指定级联的Javabean对象
+        property="dept":指定哪个属性是联合对象
+        Javabean:指定这个级联属性是什么类型(不能省略)-->
+    <association property="dept" javaType="com.hdl.bean.Dept">
+        <id column="d_id" property="id"></id>
+        <id column="dept_name" property="deptname"></id>
+    </association>
+    </resultMap>
+
+
+    <select id="getEmployee_DeptbyId" resultMap="My_Employee_Dept1">  /*resultMap值是上面自定义的resultMap的id,自定义结果封装规则*/
+    select tal_employee.id as id,last_name,gender,email,tal_dept.id as d_id,dept_name from tal_dept,tal_employee
+    where  tal_dept.id=tal_employee.d_id and  tal_employee.id=#{id}
+</select>
+
+
+    <!--上面的两种方法可以看到,都不是很简洁,sql语句也不是很简单,所以一般开发中我们不选择用多表级联查询,而是使用分步查询
+    也就是①先用员工id得到员工信息
+          ②根据员工信息中的d_id值去查部门表,得到部门信息
+          ③部门设置到员工中
+    可以看到我们是进行了两步查询-->
+
+    <resultMap type="com.hdl.bean.Employee_Dept" id="My_Employee_Dept3">
+        <!--用标签id代表这个字段是主键-->
+        <id column="id" property="id"></id>
+        <result column="last_name" property="lastname"></result>
+        <result column="gender" property="gender"></result>
+        <result column="email" property="email"></result>
+        <association property="dept" select="com.hdl.dao.DeptMapper.getDeptbyId">
+            <result column="d_id" property="dept.id" ></result>  <!--级联属性封装结果集-->
+            <result column="dept_name" property="dept.deptname"></result>    <!--级联属性封装结果集-->
+        </association>
+
+    </resultMap>
+
+    <select id="getEmployee_DeptbyId2" resultMap="My_Employee_Dept3">
+       select *  from tal_employee where id = #{id}
+    </select>
+
+
+</mapper>

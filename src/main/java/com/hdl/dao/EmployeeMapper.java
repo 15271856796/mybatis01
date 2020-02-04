@@ -1,6 +1,9 @@
 package com.hdl.dao;
 
 import com.hdl.bean.Employee;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.Map;
 
 /**
  * MybatisTest中是mybatis提供给我们第一种方法,可以看到很麻烦
@@ -11,5 +14,32 @@ import com.hdl.bean.Employee;
  *      2  select标签中的id之前也是随意的起名字,但是现在需要与我们接口中的方法进行绑定,也就是id等于方法名
  */
 public interface EmployeeMapper {
+    //查询
     public Employee getempbyId(Integer id);
+
+    //演示多个参数的查询
+    public Employee getempbyIdandLastname(@Param("id") Integer id, @Param("lastname") String lastname);
+
+    //演示多个参数的查询(方法中传入map,那么sql在接参的时候直接#{key}就可以取值)
+    public Employee getempbymap(Map<String,Object> map);
+
+    //添加
+    public void addEmployee(Employee emp);
+
+    //删除
+    public void  deleteEmployee(Integer id);
+
+    //修改
+    public void updateEmployee(Employee emp);
+
+    //mybatis允许增删改直接定义一下类型返回值,不需要像查询一样在sql配置文件中还声明返回值类型,直接如下
+        //Integer,Long,Boolean(当改动为0行时,直接返回false,否则为true)
+    public Integer  deleteEmployee1(Integer id);
+    public Boolean  deleteEmployee2(Integer id);
+
+    //获取添加的记录的自动生成的主键
+    public void addEmployee1(Employee emp);
+
+
+
 }

@@ -8,6 +8,7 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.junit.jupiter.api.Test;
 
+import javax.xml.soap.SOAPPart;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -35,16 +36,42 @@ public class MybatisTest2 {
         String resource = "mybatis-config.xml";
         InputStream inputStream = Resources.getResourceAsStream(resource);
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
-        //2 获取SqlSession对象,和方式一一样
+        //2 获取SqlSession对象,和方式一一样,这种方式的openSession不会自动提交,所以需要我们手动设置自动提交,
+        // 也可以SqlSession openSession = sqlSessionFactory.openSession(true);这样的话可以自动提交
         SqlSession openSession = sqlSessionFactory.openSession();
 
         //3 获取接口对象,虽然接口没有实现类,也没有关系,会直接执行绑定上的sql配置文件中的内容
         //只要接口和sql配置文件绑定好了之后,就会为接口创建一个代理对象,代理对象回去执行增删改查
         try {
             EmployeeMapper mapper = openSession.getMapper(EmployeeMapper.class);
+            //测试查询
             Employee employee = mapper.getempbyId(11);
             System.out.println(employee);  //Employee{id=11, lastname='tom', gender='0', email='15271856796@163.com'}
+            //测试添加
+            Employee employee1=new Employee(null,"hr","1","15732632513@163.com");
+            mapper.addEmployee(employee1);
+            //测试删除
+            mapper.deleteEmployee(11);
+            //测试修改
+            Employee employee2=new Employee(16,"hdl","0","15732632513@163.com");
+            mapper.updateEmployee(employee2);
+            //测试返回值为Interger的删除
+            int a=mapper.deleteEmployee1(11);//由于表里已经没有id为11的用户,所以改动值为0,也就是返回值为0
+            //测试返回值为Boolean的删除
+            boolean b=mapper.deleteEmployee2(11);   //返回值为false
+            System.out.println(a);
+            System.out.println(b);
+            //测试获取添加的记录的自增主键
+            Employee employee3=new Employee(null,"hr","1","15732632513@163.com");
+            mapper.addEmployee1(employee3);
+            System.out.println(employee3.getId()); //由于你在sql配置文件中已经设置过,所以这个时候再获取的时候id就不是null了.而是返回自动生成的主键
+
+
+            //手动提交
+            openSession.commit();
+
         } finally {
+
             openSession.close();
         }
 

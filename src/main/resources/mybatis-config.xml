@@ -3,12 +3,48 @@
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 
 <configuration>
-    <!--环境配置，连接的数据库，这里使用的是MySQL-->
+
+
+    <!--连接数据库的配置方法一 用properties标签引入外部文件,这样就不用直接将配置写在.xml文件中,也就是不用写死,写死的方法在下面的方法二中-->
+    <properties resource="jdbcConfig.properties">
+        <!-- <property name="driver" value="com.mysql.jdbc.Driver"></property>
+         <property name="url" value="jdbc:mysql://localhost:3306/eesy_mybatis"></property>
+         <property name="username" value="root"></property>
+         <property name="password" value="1234"></property>-->
+    </properties>
+
+    <!--使用typeAliases配置别名，它只能配置我们自己类实体的别名,这个标签最好写在environment上面,不然会出现标签无法识别的问题-->
+    <!--使用别名之后,在定位类的位置的时候,就可以使用别名,比如在mapper.xml文件的resultType属性值就可以直接用别名-->
+    <typeAliases>
+        <!--typeAlias用于配置别名。type属性指定的是实体类全限定类名。alias属性指定别名，当指定了别名就得区分大小写
+        <typeAlias type="com.hdl.bean.Dept" alias="Dept"></typeAlias>-->
+
+        <!-- 用于指定要配置别名的包，当指定之后，该包下的实体类都会注册别名，并且类名就是别名，不再区分大小写-->
+        <package name="com.hdl.bean"></package>
+    </typeAliases>
+
+    <!--数据库配置方法一:上面用properties引入外部文件后,也就是连接数据库所需信息后,就可以用${}来选定key值了-->
     <environments default="mysql">
         <environment id="mysql">
             <!--指定事务管理的类型，这里简单使用Java的JDBC的提交和回滚设置-->
             <transactionManager type="JDBC"></transactionManager>
             <!--dataSource 指连接源配置，POOLED是JDBC连接对象的数据源连接池的实现-->
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"></property>
+                <property name="url" value="${jdbc.url}"></property>
+                <property name="username" value="${jdbc.username}"></property>
+                <property name="password" value="${jdbc.password}"></property>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <!--数据库连接的配置方法二，这里是将驱动,数据库名,用户名以及密码写死,不提倡-->
+<!--
+    <environments default="mysql">
+        <environment id="mysql">
+            &lt;!&ndash;指定事务管理的类型，这里简单使用Java的JDBC的提交和回滚设置&ndash;&gt;
+            <transactionManager type="JDBC"></transactionManager>
+            &lt;!&ndash;dataSource 指连接源配置，POOLED是JDBC连接对象的数据源连接池的实现&ndash;&gt;
             <dataSource type="POOLED">
                 <property name="driver" value="com.mysql.jdbc.Driver"></property>
                 <property name="url" value="jdbc:mysql://192.168.5.128:3306/mybatis"></property>
@@ -17,13 +53,25 @@
             </dataSource>
         </environment>
     </environments>
-    <mappers>
+-->
 
+
+    <mappers>
         <!--将我们写好的sql映射文件(EmployeeMapper.xml),一定要注册到全局配置文件(mybatis-config.xml中)
         对于在src下的文件直接写文件名，如果在某包下，则要写明路径,如：com/mybatistest/config/User.xml-->
         <mapper resource="EmployeeMapper1.xml"></mapper>
         <mapper resource="EmployeeMapper2.xml"></mapper>
+  <!--      <mapper resource="Employee_DeptMapper.xml"></mapper>-->
 
+
+        <!-- package标签是用于指定dao接口所在的包,当指定了之后就不需要在写mapper以及resource或者class了 -->
+        <!--<package name="com.hdl.dao"></package>-->
 
     </mappers>
+
+
+
+
+
+
 </configuration>
